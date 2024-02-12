@@ -1,6 +1,6 @@
 use std::{collections::HashSet, fmt::Display, ops::RangeInclusive};
 
-use chrono::{Datelike, Month, NaiveDate, NaiveWeek, Weekday};
+use chrono::{Datelike, Month, NaiveDate, Weekday};
 use num_traits::FromPrimitive;
 
 use crate::{BasicMarker, Calendar, Marker};
@@ -25,7 +25,7 @@ impl MonthCalendar {
         month: u32,
         begin_weekday: Weekday,
         day_width: usize,
-        marker: Box<dyn Marker>,
+        marker: impl Marker + 'static,
     ) -> Option<Self> {
         let date = NaiveDate::from_ymd_opt(year, month, 1)?;
 
@@ -37,12 +37,12 @@ impl MonthCalendar {
         let mut end = date;
         while let Some(succ_date) = end.succ_opt() {
             if succ_date.month0() != date.month0() {
-                weeks.push((start.day0()+1)..=(end.day0() + 1));
-                break; 
+                weeks.push((start.day0() + 1)..=(end.day0() + 1));
+                break;
             }
 
             if end.weekday() == end_weekday {
-                weeks.push((start.day0()+1)..=(end.day0()+1));
+                weeks.push((start.day0() + 1)..=(end.day0() + 1));
                 start = succ_date;
                 end = start;
                 continue;
@@ -51,8 +51,6 @@ impl MonthCalendar {
             end = succ_date;
         }
 
-
-
         Some(Self {
             year,
             month,
@@ -60,31 +58,24 @@ impl MonthCalendar {
             begin_weekday,
             day_width,
             marked: HashSet::new(),
-            marker,
+            marker: Box::new(marker),
         })
     }
 
     pub fn from_ym(year: i32, month: u32) -> Option<Self> {
-        Self::new(
-            year,
-            month,
-            Weekday::Sun,
-            4,
-            Box::new(BasicMarker::SquareBrackets),
-        )
+        Self::new(year, month, Weekday::Sun, 4, BasicMarker::SquareBrackets)
     }
 }
 
 impl Calendar for MonthCalendar {
     fn mark(&mut self, date: NaiveDate) {
-        let year = if let (true, year) = date.year_ce(){
+        let year = if let (true, year) = date.year_ce() {
             year as i32
-        } else  {
+        } else {
             -(date.year_ce().1 as i32)
         };
 
-
-        if self.year == year && self.month == date.month0()+1 {
+        if self.year == year && self.month == date.month0() + 1 {
             self.marked.insert(date.day());
         }
     }
@@ -132,30 +123,11 @@ impl Display for MonthCalendar {
         let first_week = self.weeks.first().unwrap();
         let last_week = self.weeks.last().unwrap();
 
-        // for day in (1..=7).rev() {
-        //     if first_week.contains(&day) {
-        //         if self.marked.contains(&day) {
-        //             write!(
-        //                 f,
-        //                 "{: ^width$}",
-        //                 self.marker.decorate(&format!("{: ^2}", day)),
-        //                 width = self.day_width
-        //             )?;
-        //         } else {
-        //             write!(f, "{: ^width$}", day, width = self.day_width)?;
-        //         }
-        //     } else {
-        //         write!(f, "{: ^width$}", "", width = self.day_width)?;
-        //     }
-        // }
-
-        // writeln!(f)?;
-
-        for _ in 1..=(7-first_week.end()) {
+        for _ in 1..=(7 - first_week.end()) {
             write!(f, "{: ^width$}", "", width = self.day_width)?;
         }
 
-        let last_i = self.weeks.len() -1;
+        let last_i = self.weeks.len() - 1;
         for (i, week) in self.weeks[..].iter().cloned().enumerate() {
             for day in week.into_iter() {
                 if self.marked.contains(&day) {
@@ -174,28 +146,8 @@ impl Display for MonthCalendar {
                 }
             }
 
-            // let mut day = week.first_day();
-            // for _ in 0..7 {
-            //     if day.month() == self.month {
-            //         if self.marked.contains(&day.day()) {
-            //             write!(
-            //                 f,
-            //                 "{: ^width$}",
-            //                 self.marker.decorate(&format!("{: ^2}", day.day())),
-            //                 width = self.day_width
-            //             )?;
-            //         } else {
-            //             write!(f, "{: ^width$}", day.day(), width = self.day_width)?;
-            //         }
-            //     } else {
-            //         write!(f, "{: ^width$}", "", width = self.day_width)?;
-            //     }
-
-            //     day = day.succ_opt().unwrap_or(day);
-            // }
-
             if i == last_i {
-                for _ in 0..(7-(last_week.end() - last_week.start())-1) {
+                for _ in 0..(7 - (last_week.end() - last_week.start()) - 1) {
                     write!(f, "{: ^width$}", "", width = self.day_width)?;
                 }
             } else {
@@ -213,22 +165,20 @@ pub fn str_month_calendar(year: i32, month: u32) -> Option<String> {
 
 #[cfg(test)]
 mod tests {
-    use crate::n_date;
-
     use super::*;
 
     #[test]
     fn test() {
-        const ROWS_LIST_2024: [usize; 12] = [
-            5, 5, 6, 5, 5, 6, 5, 5, 5, 5, 5, 5
-        ];
+        const ROWS_LIST_2024: [usize; 12] = [5, 5, 6, 5, 5, 6, 5, 5, 5, 5, 5, 5];
 
         for i in 0..12 {
-            let cal = MonthCalendar::new(2024, i+1, Weekday::Sun, 2, Box::new(BasicMarker::SquareBrackets)).unwrap();
-            assert_eq!(cal.rows()-2, ROWS_LIST_2024[i as usize], "{:?}", cal);
+            let cal = MonthCalendar::new(2024, i + 1, Weekday::Sun, 2, BasicMarker::SquareBrackets)
+                .unwrap();
+            assert_eq!(cal.rows() - 2, ROWS_LIST_2024[i as usize], "{:?}", cal);
         }
 
-        let display_test = MonthCalendar::new(2024, 6, Weekday::Sun, 4, Box::new(BasicMarker::SquareBrackets)).unwrap();
+        let display_test =
+            MonthCalendar::new(2024, 6, Weekday::Sun, 4, BasicMarker::SquareBrackets).unwrap();
         println!("{}", display_test);
     }
 }

@@ -1,4 +1,4 @@
-use std::{fmt::Display};
+use std::fmt::Display;
 
 use chrono::Weekday;
 
@@ -12,13 +12,18 @@ pub struct YearCalendar {
 impl CalendarCollection for YearCalendar {}
 
 impl YearCalendar {
-    pub fn new<T: Marker + Clone + 'static>(year: i32, begin_weekday: Weekday, day_width: usize, marker: T) -> Self {
+    pub fn new<T: Marker + Clone + 'static>(
+        year: i32,
+        begin_weekday: Weekday,
+        day_width: usize,
+        marker: T,
+    ) -> Self {
         let mut calendars = Calendars::empty(year.to_string(), 3);
 
         for month in 1..13 {
-            calendars.push(Box::new(MonthCalendar::new(
-                year, month, begin_weekday, day_width, Box::new(marker.clone()),
-            ).unwrap()));
+            calendars.push(Box::new(
+                MonthCalendar::new(year, month, begin_weekday, day_width, marker.clone()).unwrap(),
+            ));
         }
 
         Self { year, calendars }

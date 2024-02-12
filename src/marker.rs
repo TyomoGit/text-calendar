@@ -1,4 +1,4 @@
-use std::fmt::{Debug, Display};
+use std::fmt::Debug;
 
 /// Marker trait for calendar (width=4)
 pub trait Marker {
@@ -9,6 +9,7 @@ pub trait Marker {
 }
 
 /// Basic marker
+#[derive(Debug, Clone)]
 pub enum BasicMarker {
     /// No marker
     None,
@@ -35,12 +36,6 @@ impl Marker for BasicMarker {
 }
 
 impl Debug for dyn Marker {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.decorate(""))
-    }
-}
-
-impl Display for dyn Marker {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.decorate(""))
     }

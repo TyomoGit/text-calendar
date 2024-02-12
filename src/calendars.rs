@@ -2,7 +2,7 @@ use std::fmt::{Display, Write};
 
 use chrono::NaiveDate;
 
-use crate::{Calendar, CalendarCollection};
+use crate::{Calendar, CalendarCollection, EmptyCalendar};
 
 /// multiple calendars
 #[derive(Debug)]
@@ -15,7 +15,25 @@ pub struct Calendars {
 impl CalendarCollection for Calendars {}
 
 impl Calendars {
-    pub fn new(calendars: Vec<Box<dyn Calendar>>, title: String, cols: usize) -> Self {
+    pub fn new(mut calendars: Vec<Box<dyn Calendar>>, title: String, cols: usize) -> Self {
+        let padding = cols - (calendars.len() % cols);
+
+        let last_rows = calendars
+            .windows(3)
+            .step_by(3)
+            .last()
+            .unwrap()
+            .iter()
+            .map(|c| c.rows())
+            .max()
+            .unwrap_or_default();
+
+        let empty_cal_day_width = calendars.last().unwrap().day_width();
+
+        calendars.extend((0..padding).map(|_| -> Box<dyn Calendar> {
+            Box::new(EmptyCalendar::new(last_rows, empty_cal_day_width))
+        }));
+
         Self {
             calendars,
             title,
@@ -36,8 +54,7 @@ impl Calendars {
     }
 
     fn rows_list(&self) -> Vec<usize> {
-        self
-            .calendars
+        self.calendars
             .windows(self.cols)
             .step_by(self.cols)
             .map(|w| w.iter().map(|c| c.rows()).max().unwrap_or_default())
@@ -55,9 +72,7 @@ impl Calendar for Calendars {
     }
 
     fn is_marked(&self, date: NaiveDate) -> bool {
-        self.calendars
-            .iter()
-            .any(|c| c.is_marked(date))
+        self.calendars.iter().any(|c| c.is_marked(date))
     }
 
     fn mark(&mut self, date: NaiveDate) {
@@ -75,28 +90,27 @@ impl Calendar for Calendars {
 
 impl Display for Calendars {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let padding = 2;
-        let max_line_width = self.calendars
+        let padding = self.day_width() / 2;
+        let max_line_width = self
+            .calendars
             .windows(self.cols)
             .step_by(self.cols)
-            .map(|w| {
-                w.iter()
-                    .map(|c| c.day_width()*7+padding)
-                    .sum::<usize>()
-            })
+            .map(|w| w.iter().map(|c| c.day_width() * 7 + padding).sum::<usize>())
             .max()
-            .unwrap_or_default() - 4;
+            .unwrap_or_default()
+            - 4;
 
         writeln!(f, "{:^width$}  ", self.title, width = max_line_width)?;
 
         let rows_list = self.rows_list();
 
-        for (row, calendars) in self
+        let windows = self
             .calendars
             .windows(self.cols)
             .step_by(self.cols)
-            .enumerate()
-        {
+            .enumerate();
+
+        for (row, calendars) in windows {
             let lines_list: Vec<Vec<String>> = calendars
                 .iter()
                 .map(|c| {
@@ -118,14 +132,29 @@ impl Display for Calendars {
                     }
                 }
 
-                for _ in 0..padding { line.pop(); }
+                for _ in 0..padding {
+                    line.pop();
+                }
 
                 writeln!(f, "{}", line)?;
             }
 
             writeln!(f)?;
         }
-        // dbg!(rows_list);
+
+        // if windows.len() % self.cols != 0 {
+        //     let line_list: Vec<Vec<String>> = self.calendars[..self.calendars.len() % self.cols]
+        //         .iter()
+        //         .map(|c| {
+        //             c.to_string()
+        //                 .split('\n')
+        //                 .map(|s| s.to_string())
+        //                 .collect::<Vec<String>>()
+        //         })
+        //         .collect();
+
+        // }
+
         Ok(())
     }
 }
@@ -151,7 +180,7 @@ mod tests {
         c2024[8 - 1].mark(n_date!(2024, 8, 10));
         c2024[8 - 1].mark(n_date!(2024, 8, 11));
 
-        let cals = Calendars::new(c2024, "2024".to_string(), 3);
+        let cals = Calendars::new(c2024, "2024".to_string(), 5);
         println!("{}", cals);
     }
 }
