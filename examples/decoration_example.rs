@@ -12,16 +12,18 @@ impl Marker for ExclamationMarker {
     fn decorate(&self, day: &str) -> String {
         let count = self.day_width-2;
 
+        let char = "！";
+
         let mut result = String::new();
 
-        for i in (0..count/2) {
-            write!(&mut result, "!").unwrap();
+        for i in (0..count/2).step_by(2) {
+            write!(&mut result, "{}", char).unwrap();
         }
 
         write!(&mut result, "{}", day).unwrap();
 
-        for i in (0..count/2) {
-            write!(&mut result, "!").unwrap();
+        for i in (0..count/2).step_by(2) {
+            write!(&mut result, "{}", char).unwrap();
         }
         
         if self.day_width % 2 == 1 {

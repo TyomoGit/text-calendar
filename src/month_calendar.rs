@@ -1,4 +1,4 @@
-use std::{collections::HashSet, fmt::Display};
+use std::{collections::HashSet, fmt::Display, ops::RangeInclusive};
 
 use chrono::{Datelike, Month, NaiveDate, NaiveWeek, Weekday};
 use num_traits::FromPrimitive;
@@ -9,7 +9,8 @@ use crate::{BasicMarker, Calendar, Marker};
 pub struct MonthCalendar {
     year: i32,
     month: u32,
-    weeks: Vec<NaiveWeek>,
+    // weeks: Vec<NaiveWeek>,
+    weeks: Vec<RangeInclusive<u32>>,
 
     begin_weekday: Weekday,
     day_width: usize,
@@ -28,15 +29,29 @@ impl MonthCalendar {
     ) -> Option<Self> {
         let date = NaiveDate::from_ymd_opt(year, month, 1)?;
 
-        let mut weeks = vec![];
+        let end_weekday = begin_weekday.pred();
 
-        for week in date.iter_weeks().take(6) {
-            if week.month() > month {
-                break;
+        let mut weeks: Vec<RangeInclusive<u32>> = vec![];
+
+        let mut start = date;
+        let mut end = date;
+        while let Some(succ_date) = end.succ_opt() {
+            if succ_date.month0() != date.month0() {
+                weeks.push((start.day0()+1)..=(end.day0() + 1));
+                break; 
             }
 
-            weeks.push(week.week(begin_weekday));
+            if end.weekday() == end_weekday {
+                weeks.push((start.day0()+1)..=(end.day0()+1));
+                start = succ_date;
+                end = start;
+                continue;
+            }
+
+            end = succ_date;
         }
+
+
 
         Some(Self {
             year,
@@ -114,28 +129,78 @@ impl Display for MonthCalendar {
 
         writeln!(f)?;
 
-        for week in &self.weeks {
-            let mut day = week.first_day();
-            for _ in 0..7 {
-                if day.month() == self.month {
-                    if self.marked.contains(&day.day()) {
+        let first_week = self.weeks.first().unwrap();
+        let last_week = self.weeks.last().unwrap();
+
+        // for day in (1..=7).rev() {
+        //     if first_week.contains(&day) {
+        //         if self.marked.contains(&day) {
+        //             write!(
+        //                 f,
+        //                 "{: ^width$}",
+        //                 self.marker.decorate(&format!("{: ^2}", day)),
+        //                 width = self.day_width
+        //             )?;
+        //         } else {
+        //             write!(f, "{: ^width$}", day, width = self.day_width)?;
+        //         }
+        //     } else {
+        //         write!(f, "{: ^width$}", "", width = self.day_width)?;
+        //     }
+        // }
+
+        // writeln!(f)?;
+
+        for _ in 1..=(7-first_week.end()) {
+            write!(f, "{: ^width$}", "", width = self.day_width)?;
+        }
+
+        let last_i = self.weeks.len() -1;
+        for (i, week) in self.weeks[..].iter().cloned().enumerate() {
+            for day in week.into_iter() {
+                if self.marked.contains(&day) {
+                    if self.marked.contains(&day) {
                         write!(
                             f,
                             "{: ^width$}",
-                            self.marker.decorate(&format!("{: ^2}", day.day())),
+                            self.marker.decorate(&format!("{: ^2}", day)),
                             width = self.day_width
                         )?;
                     } else {
-                        write!(f, "{: ^width$}", day.day(), width = self.day_width)?;
+                        write!(f, "{: ^width$}", day, width = self.day_width)?;
                     }
                 } else {
-                    write!(f, "{: ^width$}", "", width = self.day_width)?;
+                    write!(f, "{: ^width$}", day, width = self.day_width)?;
                 }
-
-                day = day.succ_opt().unwrap_or(day);
             }
 
-            writeln!(f)?;
+            // let mut day = week.first_day();
+            // for _ in 0..7 {
+            //     if day.month() == self.month {
+            //         if self.marked.contains(&day.day()) {
+            //             write!(
+            //                 f,
+            //                 "{: ^width$}",
+            //                 self.marker.decorate(&format!("{: ^2}", day.day())),
+            //                 width = self.day_width
+            //             )?;
+            //         } else {
+            //             write!(f, "{: ^width$}", day.day(), width = self.day_width)?;
+            //         }
+            //     } else {
+            //         write!(f, "{: ^width$}", "", width = self.day_width)?;
+            //     }
+
+            //     day = day.succ_opt().unwrap_or(day);
+            // }
+
+            if i == last_i {
+                for _ in 0..(7-(last_week.end() - last_week.start())-1) {
+                    write!(f, "{: ^width$}", "", width = self.day_width)?;
+                }
+            } else {
+                writeln!(f)?;
+            }
         }
 
         Ok(())
@@ -154,17 +219,16 @@ mod tests {
 
     #[test]
     fn test() {
-        let mut c = MonthCalendar::new(
-            2024,
-            1,
-            Weekday::Sun,
-            4,
-            Box::new(BasicMarker::SquareBrackets),
-        )
-        .unwrap();
-        c.mark(n_date!(2024, 1, 1));
-        c.mark(n_date!(2024, 1, 21));
-        c.mark(n_date!(2024, 1, 26));
-        println!("{}", c);
+        const ROWS_LIST_2024: [usize; 12] = [
+            5, 5, 6, 5, 5, 6, 5, 5, 5, 5, 5, 5
+        ];
+
+        for i in 0..12 {
+            let cal = MonthCalendar::new(2024, i+1, Weekday::Sun, 2, Box::new(BasicMarker::SquareBrackets)).unwrap();
+            assert_eq!(cal.rows()-2, ROWS_LIST_2024[i as usize], "{:?}", cal);
+        }
+
+        let display_test = MonthCalendar::new(2024, 6, Weekday::Sun, 4, Box::new(BasicMarker::SquareBrackets)).unwrap();
+        println!("{}", display_test);
     }
 }

@@ -38,7 +38,8 @@ impl Calendars {
     fn rows_list(&self) -> Vec<usize> {
         self
             .calendars
-            .windows(3)
+            .windows(self.cols)
+            .step_by(self.cols)
             .map(|w| w.iter().map(|c| c.rows()).max().unwrap_or_default())
             .collect()
     }
@@ -75,7 +76,9 @@ impl Calendar for Calendars {
 impl Display for Calendars {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let padding = 2;
-        let max_line_width = self.calendars.windows(3)
+        let max_line_width = self.calendars
+            .windows(self.cols)
+            .step_by(self.cols)
             .map(|w| {
                 w.iter()
                     .map(|c| c.day_width()*7+padding)
@@ -108,7 +111,11 @@ impl Display for Calendars {
                 let mut line = String::new();
 
                 for cal in &lines_list {
-                    write!(&mut line, "{}{}", cal[i], " ".repeat(padding))?;
+                    if let Some(cal_line) = cal.get(i) {
+                        write!(&mut line, "{}{}", cal_line, " ".repeat(padding))?;
+                    } else {
+                        write!(&mut line, "{}", " ".repeat(cal[0].len() + padding))?;
+                    }
                 }
 
                 for _ in 0..padding { line.pop(); }
@@ -118,7 +125,7 @@ impl Display for Calendars {
 
             writeln!(f)?;
         }
-
+        // dbg!(rows_list);
         Ok(())
     }
 }
