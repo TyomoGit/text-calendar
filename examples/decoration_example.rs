@@ -1,7 +1,7 @@
 use std::{fmt::Write, vec};
 
 use chrono::{NaiveDate, Weekday};
-use text_calendar::{BasicMarker, Calendar, Marker, MonthCalendar, YearCalendar};
+use text_calendar::{BasicMarker, Calendar, Marker, MonthCalendar};
 
 fn main() {
     example_builtin_marker();
