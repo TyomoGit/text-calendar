@@ -1,4 +1,4 @@
-use std::fmt::{Display, Write};
+use std::fmt::{write, Display, Write};
 
 use chrono::NaiveDate;
 
@@ -30,8 +30,8 @@ impl Calendars {
 
         let empty_cal_day_width = calendars.last().unwrap().day_width();
 
-        calendars.extend((0..padding).map(|_| -> Box<dyn Calendar> {
-            Box::new(EmptyCalendar::new(last_rows, empty_cal_day_width))
+        calendars.extend((0..padding).map(|_| {
+            Box::new(EmptyCalendar::new(last_rows, empty_cal_day_width)) as Box<dyn Calendar>
         }));
 
         Self {
@@ -49,16 +49,15 @@ impl Calendars {
         }
     }
 
-    pub fn push(&mut self, calendar: Box<dyn Calendar>) {
-        self.calendars.push(calendar);
+    pub fn push(&mut self, calendar: impl Calendar + 'static) {
+        self.calendars.push(Box::new(calendar));
     }
 
-    fn rows_list(&self) -> Vec<usize> {
+    fn rows_list(&self) -> impl Iterator<Item = usize> + '_ {
         self.calendars
             .windows(self.cols)
             .step_by(self.cols)
             .map(|w| w.iter().map(|c| c.rows()).max().unwrap_or_default())
-            .collect()
     }
 }
 
@@ -84,7 +83,7 @@ impl Calendar for Calendars {
     }
 
     fn rows(&self) -> usize {
-        self.rows_list().iter().sum()
+        self.rows_list().sum()
     }
 }
 
@@ -102,7 +101,7 @@ impl Display for Calendars {
 
         writeln!(f, "{:^width$}  ", self.title, width = max_line_width)?;
 
-        let rows_list = self.rows_list();
+        let rows_list: Vec<usize> = self.rows_list().collect();
 
         let windows = self
             .calendars
@@ -110,7 +109,7 @@ impl Display for Calendars {
             .step_by(self.cols)
             .enumerate();
 
-        for (row, calendars) in windows {
+        for (line_count, calendars) in windows {
             let lines_list: Vec<Vec<String>> = calendars
                 .iter()
                 .map(|c| {
@@ -121,7 +120,7 @@ impl Display for Calendars {
                 })
                 .collect();
 
-            for i in 0..rows_list[row] {
+            for i in 0..rows_list[line_count] {
                 let mut line = String::new();
 
                 for cal in &lines_list {
@@ -136,24 +135,19 @@ impl Display for Calendars {
                     line.pop();
                 }
 
-                writeln!(f, "{}", line)?;
+                write!(f, "{}", line)?;
+
+                if line_count < self.calendars.len() / self.cols - 1 || i != rows_list[line_count] - 1 {
+                    writeln!(f)?;
+                }
+
             }
 
-            writeln!(f)?;
+            // カレンダーの間
+            if line_count < self.calendars.len() / self.cols - 1 {
+                writeln!(f)?;
+            }
         }
-
-        // if windows.len() % self.cols != 0 {
-        //     let line_list: Vec<Vec<String>> = self.calendars[..self.calendars.len() % self.cols]
-        //         .iter()
-        //         .map(|c| {
-        //             c.to_string()
-        //                 .split('\n')
-        //                 .map(|s| s.to_string())
-        //                 .collect::<Vec<String>>()
-        //         })
-        //         .collect();
-
-        // }
 
         Ok(())
     }

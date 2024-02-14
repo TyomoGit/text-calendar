@@ -9,7 +9,8 @@ fn main() {
 }
 
 fn example_builtin_marker() {
-    let mut calendar = MonthCalendar::new(2024, 6, Weekday::Sun, 4, BasicMarker::UnderScore).unwrap();
+    let mut calendar =
+        MonthCalendar::new(2024, 6, Weekday::Sun, 4, BasicMarker::UnderScore).unwrap();
 
     calendar.mark(NaiveDate::from_ymd_opt(2024, 6, 1).unwrap());
     calendar.mark(NaiveDate::from_ymd_opt(2024, 6, 3).unwrap());
@@ -22,15 +23,15 @@ fn example_builtin_marker() {
 }
 
 /*
-            June            
- Su  Mo  Tu  We  Th  Fr  Sa 
+            June
+ Su  Mo  Tu  We  Th  Fr  Sa
                         _1 _
- 2  _3 _ 4   5   6   7   8  
-_9 _ 10  11  12  13 _14_ 15 
- 16  17  18  19  20 _21_ 22 
+ 2  _3 _ 4   5   6   7   8
+_9 _ 10  11  12  13 _14_ 15
+ 16  17  18  19  20 _21_ 22
  23  24  25  26  27  28 _29_
- 30                         
- 
+ 30
+
  */
 
 #[derive(Clone)]
@@ -64,7 +65,10 @@ impl Marker for BracketsMarker {
 
 fn example_original_brackets() {
     let day_width = 2 + 2 * 2;
-    let paren_marker = BracketsMarker { day_width, chars: vec!['<', '>' ] };
+    let paren_marker = BracketsMarker {
+        day_width,
+        chars: vec!['<', '>'],
+    };
     let mut calendar = MonthCalendar::new(2024, 6, Weekday::Mon, 6, paren_marker).unwrap();
 
     calendar.mark(NaiveDate::from_ymd_opt(2024, 6, 1).unwrap());
@@ -78,12 +82,12 @@ fn example_original_brackets() {
 }
 
 /*
-                   June                   
- Mon   Tue   Wed   Thu   Fri   Sat   Sun  
-                               <1 >   2   
- <3 >   4     5     6     7     8    <9 > 
-  10    11    12    13   <14>   15    16  
-  17    18    19    20   <21>   22    23  
-  24    25    26    27    28   <29>   30  
+                  June
+Mon   Tue   Wed   Thu   Fri   Sat   Sun
+                              <1 >   2
+<3 >   4     5     6     7     8    <9 >
+ 10    11    12    13   <14>   15    16
+ 17    18    19    20   <21>   22    23
+ 24    25    26    27    28   <29>   30
 
- */
+*/

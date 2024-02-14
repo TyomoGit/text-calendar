@@ -14,9 +14,3 @@ impl Debug for dyn Calendar {
         write!(f, "{}", self)
     }
 }
-
-// #[derive(Debug)]
-// pub struct YearCalendar {
-//     year: i32,
-//     calendars: Calendars,
-// }

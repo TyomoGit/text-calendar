@@ -21,9 +21,9 @@ impl YearCalendar {
         let mut calendars = Calendars::empty(year.to_string(), 3);
 
         for month in 1..13 {
-            calendars.push(Box::new(
+            calendars.push(
                 MonthCalendar::new(year, month, begin_weekday, day_width, marker.clone()).unwrap(),
-            ));
+            );
         }
 
         Self { year, calendars }

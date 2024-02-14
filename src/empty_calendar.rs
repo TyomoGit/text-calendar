@@ -32,8 +32,12 @@ impl Calendar for EmptyCalendar {
 
 impl Display for EmptyCalendar {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        for _ in 0..(self.rows) {
-            writeln!(f, "{: ^width$}", "", width = self.day_width * 7)?;
+        for i in 0..(self.rows) {
+            write!(f, "{: ^width$}", "", width = self.day_width * 7)?;
+
+            if i != self.rows - 1 {
+                writeln!(f)?;
+            }
         }
 
         Ok(())

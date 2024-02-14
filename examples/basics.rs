@@ -2,9 +2,21 @@ use chrono::Weekday;
 use text_calendar::{BasicMarker, Calendar, Calendars, MonthCalendar, YearCalendar};
 
 fn main() {
-    example_month_cal();
-    example_year_cal();
+    // example_month_cal();
+    // example_year_cal();
     example_original_multiple_calendars();
+
+    // let cal2024 = YearCalendar::new(2024, Weekday::Sun, 4, BasicMarker::SquareBrackets);
+    // let cal2025 = YearCalendar::new(2025, Weekday::Sun, 4, BasicMarker::SquareBrackets);
+    // let cal2026 = YearCalendar::new(2026, Weekday::Sun, 4, BasicMarker::SquareBrackets);
+
+    // let calendars = Calendars::new(
+    //     vec![Box::new(cal2024), Box::new(cal2025), Box::new(cal2026)],
+    //     String::from("24,25,26 Calendar"),
+    //     3,
+    // );
+
+    // println!("{}", calendars);
 }
 
 fn example_month_cal() {
@@ -15,13 +27,13 @@ fn example_month_cal() {
 }
 
 /*
-          February          
- Su  Mo  Tu  We  Th  Fr  Sa 
-                 1   2   3  
- 4   5   6   7   8   9   10 
- 11  12  13  14  15  16  17 
- 18  19  20  21  22  23  24 
- 25  26  27  28  29         
+          February
+ Su  Mo  Tu  We  Th  Fr  Sa
+                 1   2   3
+ 4   5   6   7   8   9   10
+ 11  12  13  14  15  16  17
+ 18  19  20  21  22  23  24
+ 25  26  27  28  29
 
 */
 
@@ -32,40 +44,40 @@ fn example_year_cal() {
 }
 
 /*
-                                         2024                                           
-          January                       February                       March            
- Su  Mo  Tu  We  Th  Fr  Sa    Su  Mo  Tu  We  Th  Fr  Sa    Su  Mo  Tu  We  Th  Fr  Sa 
-     1   2   3   4   5   6                     1   2   3                         1   2  
- 7   8   9   10  11  12  13    4   5   6   7   8   9   10    3   4   5   6   7   8   9  
- 14  15  16  17  18  19  20    11  12  13  14  15  16  17    10  11  12  13  14  15  16 
- 21  22  23  24  25  26  27    18  19  20  21  22  23  24    17  18  19  20  21  22  23 
- 28  29  30  31                25  26  27  28  29            24  25  26  27  28  29  30 
-                                                             31                         
+                                         2024
+          January                       February                       March
+ Su  Mo  Tu  We  Th  Fr  Sa    Su  Mo  Tu  We  Th  Fr  Sa    Su  Mo  Tu  We  Th  Fr  Sa
+     1   2   3   4   5   6                     1   2   3                         1   2
+ 7   8   9   10  11  12  13    4   5   6   7   8   9   10    3   4   5   6   7   8   9
+ 14  15  16  17  18  19  20    11  12  13  14  15  16  17    10  11  12  13  14  15  16
+ 21  22  23  24  25  26  27    18  19  20  21  22  23  24    17  18  19  20  21  22  23
+ 28  29  30  31                25  26  27  28  29            24  25  26  27  28  29  30
+                                                             31
 
-           April                          May                           June            
- Su  Mo  Tu  We  Th  Fr  Sa    Su  Mo  Tu  We  Th  Fr  Sa    Su  Mo  Tu  We  Th  Fr  Sa 
-     1   2   3   4   5   6                 1   2   3   4                             1  
- 7   8   9   10  11  12  13    5   6   7   8   9   10  11    2   3   4   5   6   7   8  
- 14  15  16  17  18  19  20    12  13  14  15  16  17  18    9   10  11  12  13  14  15 
- 21  22  23  24  25  26  27    19  20  21  22  23  24  25    16  17  18  19  20  21  22 
- 28  29  30                    26  27  28  29  30  31        23  24  25  26  27  28  29 
-                                                             30                         
+           April                          May                           June
+ Su  Mo  Tu  We  Th  Fr  Sa    Su  Mo  Tu  We  Th  Fr  Sa    Su  Mo  Tu  We  Th  Fr  Sa
+     1   2   3   4   5   6                 1   2   3   4                             1
+ 7   8   9   10  11  12  13    5   6   7   8   9   10  11    2   3   4   5   6   7   8
+ 14  15  16  17  18  19  20    12  13  14  15  16  17  18    9   10  11  12  13  14  15
+ 21  22  23  24  25  26  27    19  20  21  22  23  24  25    16  17  18  19  20  21  22
+ 28  29  30                    26  27  28  29  30  31        23  24  25  26  27  28  29
+                                                             30
 
-            July                         August                      September          
- Su  Mo  Tu  We  Th  Fr  Sa    Su  Mo  Tu  We  Th  Fr  Sa    Su  Mo  Tu  We  Th  Fr  Sa 
-     1   2   3   4   5   6                     1   2   3     1   2   3   4   5   6   7  
- 7   8   9   10  11  12  13    4   5   6   7   8   9   10    8   9   10  11  12  13  14 
- 14  15  16  17  18  19  20    11  12  13  14  15  16  17    15  16  17  18  19  20  21 
- 21  22  23  24  25  26  27    18  19  20  21  22  23  24    22  23  24  25  26  27  28 
- 28  29  30  31                25  26  27  28  29  30  31    29  30                     
+            July                         August                      September
+ Su  Mo  Tu  We  Th  Fr  Sa    Su  Mo  Tu  We  Th  Fr  Sa    Su  Mo  Tu  We  Th  Fr  Sa
+     1   2   3   4   5   6                     1   2   3     1   2   3   4   5   6   7
+ 7   8   9   10  11  12  13    4   5   6   7   8   9   10    8   9   10  11  12  13  14
+ 14  15  16  17  18  19  20    11  12  13  14  15  16  17    15  16  17  18  19  20  21
+ 21  22  23  24  25  26  27    18  19  20  21  22  23  24    22  23  24  25  26  27  28
+ 28  29  30  31                25  26  27  28  29  30  31    29  30
 
-          October                       November                      December          
- Su  Mo  Tu  We  Th  Fr  Sa    Su  Mo  Tu  We  Th  Fr  Sa    Su  Mo  Tu  We  Th  Fr  Sa 
-         1   2   3   4   5                         1   2     1   2   3   4   5   6   7  
- 6   7   8   9   10  11  12    3   4   5   6   7   8   9     8   9   10  11  12  13  14 
- 13  14  15  16  17  18  19    10  11  12  13  14  15  16    15  16  17  18  19  20  21 
- 20  21  22  23  24  25  26    17  18  19  20  21  22  23    22  23  24  25  26  27  28 
- 27  28  29  30  31            24  25  26  27  28  29  30    29  30  31                 
+          October                       November                      December
+ Su  Mo  Tu  We  Th  Fr  Sa    Su  Mo  Tu  We  Th  Fr  Sa    Su  Mo  Tu  We  Th  Fr  Sa
+         1   2   3   4   5                         1   2     1   2   3   4   5   6   7
+ 6   7   8   9   10  11  12    3   4   5   6   7   8   9     8   9   10  11  12  13  14
+ 13  14  15  16  17  18  19    10  11  12  13  14  15  16    15  16  17  18  19  20  21
+ 20  21  22  23  24  25  26    17  18  19  20  21  22  23    22  23  24  25  26  27  28
+ 27  28  29  30  31            24  25  26  27  28  29  30    29  30  31
 
 */
 
@@ -83,7 +95,7 @@ fn example_original_multiple_calendars() {
         .collect();
 
     let calendars = Calendars::new(calendar_list, "Reversed Calendar".to_string(), 5);
-    println!("{}", calendars);
+    print!("{}", calendars);
 }
 
 /*
@@ -115,4 +127,3 @@ fn example_original_multiple_calendars() {
 
 
 */
-
