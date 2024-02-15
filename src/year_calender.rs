@@ -23,9 +23,9 @@ impl YearCalendar {
         let mut calendar_list: Vec<Box<dyn Calendar>> = vec![];
 
         for month in 1..13 {
-            calendar_list.push(
-                Box::new(MonthCalendar::new(year, month, begin_weekday, day_width, marker.clone()).unwrap()),
-            );
+            calendar_list.push(Box::new(
+                MonthCalendar::new(year, month, begin_weekday, day_width, marker.clone()).unwrap(),
+            ));
         }
 
         let calendars = Calendars::new(calendar_list, year.to_string(), 3);

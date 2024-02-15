@@ -1,6 +1,6 @@
 use std::fmt::{Display, Write};
 
-use chrono::{format, NaiveDate};
+use chrono::NaiveDate;
 
 use crate::{Calendar, CalendarCollection, EmptyCalendar};
 
@@ -11,7 +11,7 @@ pub struct Calendars {
     title: String,
     cols: usize,
     width: usize,
-    padding: usize
+    padding: usize,
 }
 
 impl CalendarCollection for Calendars {}
@@ -42,7 +42,7 @@ impl Calendars {
             .unwrap_or_default();
 
         let padding = no_padding_width / cols / 7;
-        
+
         let width = no_padding_width + padding * (cols - 1);
 
         Self {
@@ -50,7 +50,7 @@ impl Calendars {
             title,
             cols,
             width,
-            padding
+            padding,
         }
     }
 
@@ -76,17 +76,7 @@ impl Calendar for Calendars {
     }
 
     fn width(&self) -> usize {
-        let no_padding_width = self
-            .calendars
-            .windows(self.cols)
-            .step_by(self.cols)
-            .map(|w| w.iter().map(|c| c.width()).sum::<usize>())
-            .max()
-            .unwrap_or_default();
-
-        let padding = no_padding_width / self.cols / 7;
-        
-        no_padding_width + padding * (self.cols - 1)
+        self.width
     }
 
     fn height(&self) -> usize {
@@ -136,10 +126,11 @@ impl Display for Calendars {
 
                 write!(f, "{}", line)?;
 
-                if line_count < self.calendars.len() / self.cols - 1 || i != height_list[line_count] - 1 {
+                if line_count < self.calendars.len() / self.cols - 1
+                    || i != height_list[line_count] - 1
+                {
                     writeln!(f)?;
                 }
-
             }
 
             // カレンダーの間
