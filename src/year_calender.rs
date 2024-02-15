@@ -18,13 +18,17 @@ impl YearCalendar {
         day_width: usize,
         marker: T,
     ) -> Self {
-        let mut calendars = Calendars::empty(year.to_string(), 3);
+        // let mut calendars = Calendars::empty(year.to_string(), 3);
+
+        let mut calendar_list: Vec<Box<dyn Calendar>> = vec![];
 
         for month in 1..13 {
-            calendars.push(
-                MonthCalendar::new(year, month, begin_weekday, day_width, marker.clone()).unwrap(),
+            calendar_list.push(
+                Box::new(MonthCalendar::new(year, month, begin_weekday, day_width, marker.clone()).unwrap()),
             );
         }
+
+        let calendars = Calendars::new(calendar_list, year.to_string(), 3);
 
         Self { year, calendars }
     }
@@ -41,10 +45,6 @@ impl Display for YearCalendar {
 }
 
 impl Calendar for YearCalendar {
-    fn day_width(&self) -> usize {
-        self.calendars.day_width()
-    }
-
     fn is_marked(&self, date: chrono::prelude::NaiveDate) -> bool {
         self.calendars.is_marked(date)
     }
@@ -53,11 +53,15 @@ impl Calendar for YearCalendar {
         self.calendars.mark(date)
     }
 
-    fn rows(&self) -> usize {
-        self.calendars.rows()
-    }
-
     fn unmark(&mut self, date: chrono::prelude::NaiveDate) {
         self.calendars.unmark(date)
+    }
+
+    fn height(&self) -> usize {
+        self.calendars.height()
+    }
+
+    fn width(&self) -> usize {
+        self.calendars.width()
     }
 }

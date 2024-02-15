@@ -1,6 +1,6 @@
-use std::fmt::{write, Display, Write};
+use std::fmt::{Display, Write};
 
-use chrono::NaiveDate;
+use chrono::{format, NaiveDate};
 
 use crate::{Calendar, CalendarCollection, EmptyCalendar};
 
@@ -10,66 +10,59 @@ pub struct Calendars {
     calendars: Vec<Box<dyn Calendar>>,
     title: String,
     cols: usize,
+    width: usize,
+    padding: usize
 }
 
 impl CalendarCollection for Calendars {}
 
 impl Calendars {
     pub fn new(mut calendars: Vec<Box<dyn Calendar>>, title: String, cols: usize) -> Self {
-        let padding = cols - (calendars.len() % cols);
+        let last_padding = cols - (calendars.len() % cols);
 
-        let last_rows = calendars
-            .windows(3)
-            .step_by(3)
-            .last()
-            .unwrap()
+        let last_height = calendars[calendars.len() - (cols - last_padding)..]
             .iter()
-            .map(|c| c.rows())
+            .map(|c| c.height())
             .max()
             .unwrap_or_default();
 
-        let empty_cal_day_width = calendars.last().unwrap().day_width();
+        if last_padding != cols {
+            let empty_cal_width = calendars.last().unwrap().width();
 
-        calendars.extend((0..padding).map(|_| {
-            Box::new(EmptyCalendar::new(last_rows, empty_cal_day_width)) as Box<dyn Calendar>
-        }));
+            calendars.extend((0..last_padding).map(|_| {
+                Box::new(EmptyCalendar::new(last_height, empty_cal_width)) as Box<dyn Calendar>
+            }));
+        }
+
+        let no_padding_width = calendars
+            .windows(cols)
+            .step_by(cols)
+            .map(|w| w.iter().map(|c| c.width()).sum::<usize>())
+            .max()
+            .unwrap_or_default();
+
+        let padding = no_padding_width / cols / 7;
+        
+        let width = no_padding_width + padding * (cols - 1);
 
         Self {
             calendars,
             title,
             cols,
+            width,
+            padding
         }
     }
 
-    pub fn empty(title: String, cols: usize) -> Self {
-        Self {
-            calendars: vec![],
-            title,
-            cols,
-        }
-    }
-
-    pub fn push(&mut self, calendar: impl Calendar + 'static) {
-        self.calendars.push(Box::new(calendar));
-    }
-
-    fn rows_list(&self) -> impl Iterator<Item = usize> + '_ {
+    fn height_list(&self) -> impl Iterator<Item = usize> + '_ {
         self.calendars
             .windows(self.cols)
             .step_by(self.cols)
-            .map(|w| w.iter().map(|c| c.rows()).max().unwrap_or_default())
+            .map(|w| w.iter().map(|c| c.height()).max().unwrap_or_default())
     }
 }
 
 impl Calendar for Calendars {
-    fn day_width(&self) -> usize {
-        self.calendars
-            .iter()
-            .map(|c| c.day_width())
-            .max()
-            .unwrap_or_default()
-    }
-
     fn is_marked(&self, date: NaiveDate) -> bool {
         self.calendars.iter().any(|c| c.is_marked(date))
     }
@@ -82,26 +75,32 @@ impl Calendar for Calendars {
         self.calendars.iter_mut().for_each(|c| c.unmark(date));
     }
 
-    fn rows(&self) -> usize {
-        self.rows_list().sum()
+    fn width(&self) -> usize {
+        let no_padding_width = self
+            .calendars
+            .windows(self.cols)
+            .step_by(self.cols)
+            .map(|w| w.iter().map(|c| c.width()).sum::<usize>())
+            .max()
+            .unwrap_or_default();
+
+        let padding = no_padding_width / self.cols / 7;
+        
+        no_padding_width + padding * (self.cols - 1)
+    }
+
+    fn height(&self) -> usize {
+        1 + self.height_list().sum::<usize>() + (self.calendars.len() / self.cols - 1)
     }
 }
 
 impl Display for Calendars {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let padding = self.day_width() / 2;
-        let max_line_width = self
-            .calendars
-            .windows(self.cols)
-            .step_by(self.cols)
-            .map(|w| w.iter().map(|c| c.day_width() * 7 + padding).sum::<usize>())
-            .max()
-            .unwrap_or_default()
-            - 4;
+        let max_line_width = self.width();
 
-        writeln!(f, "{:^width$}  ", self.title, width = max_line_width)?;
+        writeln!(f, "{: ^width$}", self.title, width = max_line_width)?;
 
-        let rows_list: Vec<usize> = self.rows_list().collect();
+        let height_list: Vec<usize> = self.height_list().collect();
 
         let windows = self
             .calendars
@@ -120,24 +119,24 @@ impl Display for Calendars {
                 })
                 .collect();
 
-            for i in 0..rows_list[line_count] {
+            for i in 0..height_list[line_count] {
                 let mut line = String::new();
 
                 for cal in &lines_list {
                     if let Some(cal_line) = cal.get(i) {
-                        write!(&mut line, "{}{}", cal_line, " ".repeat(padding))?;
+                        write!(&mut line, "{}{}", cal_line, " ".repeat(self.padding))?;
                     } else {
-                        write!(&mut line, "{}", " ".repeat(cal[0].len() + padding))?;
+                        write!(&mut line, "{}", " ".repeat(cal[0].len() + self.padding))?;
                     }
                 }
 
-                for _ in 0..padding {
+                for _ in 0..self.padding {
                     line.pop();
                 }
 
                 write!(f, "{}", line)?;
 
-                if line_count < self.calendars.len() / self.cols - 1 || i != rows_list[line_count] - 1 {
+                if line_count < self.calendars.len() / self.cols - 1 || i != height_list[line_count] - 1 {
                     writeln!(f)?;
                 }
 
@@ -145,7 +144,7 @@ impl Display for Calendars {
 
             // カレンダーの間
             if line_count < self.calendars.len() / self.cols - 1 {
-                writeln!(f)?;
+                writeln!(f, "{}", " ".repeat(max_line_width))?;
             }
         }
 

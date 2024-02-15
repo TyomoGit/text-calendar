@@ -88,12 +88,12 @@ impl Calendar for MonthCalendar {
         self.marked.contains(&date.day())
     }
 
-    fn rows(&self) -> usize {
-        self.weeks.len() + 2
+    fn width(&self) -> usize {
+        self.day_width * 7
     }
 
-    fn day_width(&self) -> usize {
-        self.day_width
+    fn height(&self) -> usize {
+        2 + self.weeks.len()
     }
 }
 
@@ -174,7 +174,7 @@ mod tests {
         for i in 0..12 {
             let cal = MonthCalendar::new(2024, i + 1, Weekday::Sun, 2, BasicMarker::SquareBrackets)
                 .unwrap();
-            assert_eq!(cal.rows() - 2, ROWS_LIST_2024[i as usize], "{:?}", cal);
+            assert_eq!(cal.height() - 2, ROWS_LIST_2024[i as usize], "{:?}", cal);
         }
 
         let display_test =

@@ -5,8 +5,9 @@ pub trait Calendar: Display {
     fn mark(&mut self, date: NaiveDate);
     fn unmark(&mut self, date: NaiveDate);
     fn is_marked(&self, date: NaiveDate) -> bool;
-    fn rows(&self) -> usize;
-    fn day_width(&self) -> usize;
+
+    fn width(&self) -> usize;
+    fn height(&self) -> usize;
 }
 
 impl Debug for dyn Calendar {
